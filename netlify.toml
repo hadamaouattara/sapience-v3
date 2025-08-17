@@ -1,19 +1,32 @@
 [build]
+  publish = ".next"
   command = "npm run build"
 
 [build.environment]
-  NEXT_TELEMETRY_DISABLED = "1"
   NODE_VERSION = "18"
+  NEXT_TELEMETRY_DISABLED = "1"
 
-[context.production]
-  command = "npm run build"
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Sapience-Auth"
 
-[context.deploy-preview]
-  command = "npm run build"
+[[edge_functions]]
+  function = "quantum-pup-optimizer"
+  path = "/api/quantum/pup-optimizer"
 
-[context.branch-deploy]
-  command = "npm run build"
+[[edge_functions]]
+  function = "quantum-monitor"
+  path = "/api/quantum/monitor"
 
-# SAPience v3.0 Configuration
-# Next.js Runtime handles routing automatically
-# No manual redirects needed for Next.js apps
+[[redirects]]
+  from = "/quantum/*"
+  to = "/api/quantum/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
