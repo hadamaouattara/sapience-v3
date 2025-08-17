@@ -19,6 +19,7 @@
     "AI",
     "n8n",
     "Claude",
+    "Bedrock",
     "SaaS"
   ],
   "scripts": {
@@ -28,6 +29,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-agent-runtime": "^3.515.0",
+    "@aws-sdk/credential-providers": "^3.515.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.456.0",
     "next": "^15.0.3",
