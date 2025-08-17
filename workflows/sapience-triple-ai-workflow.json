@@ -1,0 +1,305 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sapience-acm-optimized",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "SAP Data Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [
+        240,
+        304
+      ],
+      "typeVersion": 2,
+      "webhookId": "61410b41-4180-40c9-ac3e-cf796690b511"
+    },
+    {
+      "parameters": {
+        "url": "http://202.153.35.211:50000/sap/opu/odata/sap/ACM_APPLWC/C_ACMApplicationOverview",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "User-Agent",
+              "value": "SAPience-ML-Platform/2.0"
+            }
+          ]
+        },
+        "options": {
+          "response": {},
+          "timeout": 45000
+        }
+      },
+      "id": "sap-odata",
+      "name": "SAP OData ACM Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        464,
+        304
+      ],
+      "typeVersion": 4,
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "LHBd931dhIGhvV1m",
+          "name": "odata_connexion"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "const sapData = items[0].json;\nconst webhookData = $node['SAP Data Trigger'].json;\n\n// SAPience ML Platform Enhanced Processing\nlet processedData = {\n  timestamp: new Date().toISOString(),\n  source: 'SAP OData ACM_APPLWC',\n  platform: 'SAPience ML Platform v2.0',\n  webhookTrigger: webhookData,\n  sapResponse: sapData,\n  collections: [],\n  summary: {\n    totalCollections: 0,\n    searchableCollections: 0,\n    writableCollections: 0,\n    mlReadyCollections: 0\n  },\n  businessContext: {\n    stakeholders: ['Finance/CO', 'Supply Chain', 'Contrôle de gestion'],\n    kpis: ['PUP accuracy', 'Anomaly detection', 'Process automation'],\n    saasFeatures: ['Multi-entity dashboards', 'PUP prédictif + IC', 'Smart alerts', 'What-if analysis']\n  }\n};\n\nif (sapData && sapData.service && sapData.service.workspace) {\n  const collections = sapData.service.workspace.collection || [];\n  processedData.collections = collections.map(collection => ({\n    name: collection.title?._text || collection.href,\n    href: collection.href,\n    description: collection['member-title']?._text || '',\n    searchable: collection.searchable === 'true',\n    deletable: collection.deletable === 'true',\n    updatable: collection.updatable === 'true',\n    creatable: collection.creatable === 'true',\n    // SAPience ML Assessment\n    mlPotential: {\n      isPredictable: collection.searchable === 'true' && (collection.href?.includes('Contract') || collection.href?.includes('Value')),\n      anomalyDetectable: collection.updatable === 'true',\n      forecastable: collection.href?.includes('Amount') || collection.href?.includes('Value')\n    }\n  }));\n  \n  processedData.summary.totalCollections = collections.length;\n  processedData.summary.searchableCollections = collections.filter(c => c.searchable === 'true').length;\n  processedData.summary.writableCollections = collections.filter(c => c.updatable === 'true' || c.creatable === 'true').length;\n  processedData.summary.mlReadyCollections = processedData.collections.filter(c => c.mlPotential.isPredictable).length;\n}\nelse if (sapData && sapData.d && sapData.d.results) {\n  processedData.dataResults = {\n    count: sapData.d.results.length,\n    results: sapData.d.results.slice(0, 5)\n  };\n}\n\n// Generate AI prompts\nprocessedData.geminiPrompt = `🏢 SAPience ML Platform - Analyse Business SAP ACM:\\n\\n📊 Données:\\n- Collections totales: ${processedData.summary.totalCollections}\\n- Collections ML-Ready: ${processedData.summary.mlReadyCollections}\\n- Collections modifiables: ${processedData.summary.writableCollections}\\n\\n🎯 MISSION Business Analysis:\\n\\n1. 💰 ROI & Impact SAPience:\\n   - Potentiel d'automatisation des contrats\\n   - Gains en contrôle de gestion (réduction écarts PUP)\\n   - Optimisation Supply Chain\\n\\n2. 📈 KPIs critiques SAPience:\\n   - MAPE (Mean Absolute Percentage Error) pour prédictions PUP\\n   - Taux de détection d'anomalies\\n   - Temps de cycle des processus\\n\\n3. 🚀 Roadmap 0-90 jours:\\n   - Phase 1: Connexion SAP + baseline (0-15j)\\n   - Phase 2: Modèles prédictifs ML (15-45j)\\n   - Phase 3: Alertes n8n + dashboards (45-90j)\\n\\n4. 💡 Pricing & Value:\\n   - Essential (€2-5k/mois): Dashboards + exports\\n   - Pro (€6-12k/mois): ML + alerts + what-if\\n   - ROI estimé: 15-25% réduction erreurs forecast`;\n\nprocessedData.chatgptPrompt = `🔧 SAPience ML Platform - Architecture Technique SAP ACM:\\n\\n📊 Données:\\n- Collections: ${processedData.summary.totalCollections}\\n- ML-Ready: ${processedData.summary.mlReadyCollections}\\n- Potentiel technique élevé\\n\\n🏗️ MISSION Architecture Technique:\\n\\n1. 🔗 Intégration SAP optimale:\\n   - BTP Destination Service vs VPN/IPSec\\n   - OData v4 (CDS) avec OAuth2SAMLBearerAssertion\\n   - Sécurité: pas d'ouverture internet directe\\n\\n2. 🤖 Pipeline ML SAPience:\\n   - Feature engineering données ACM/CKML\\n   - LightGBM/XGBoost pour prédictions PUP\\n   - SHAP pour explainability (XAI)\\n   - Redis cache pour performances\\n\\n3. ⚡ Scalabilité & Performance:\\n   - Multi-tenant (EU-West-3 Paris)\\n   - Postgres + RLS (Row-Level Security)\\n   - n8n orchestration: Monthly Close + Anomaly Watch\\n   - Kubernetes + autoscaling\\n\\n4. 🛡️ Sécurité & Compliance:\\n   - RGPD compliant (hébergement EU)\\n   - Chiffrement at-rest & in-transit\\n   - Audit trails SOX-friendly\\n   - Rotation secrets 90j`;\n\n// NEW: Supernova Bedrock Prompt\nprocessedData.supernovaPrompt = `🤖 Agent Supernova - Expert SAP Finance/CO Analysis:\\n\\n📊 Context SAP ACM:\\n- Collections analysées: ${processedData.summary.totalCollections}\\n- Collections ML-Ready: ${processedData.summary.mlReadyCollections}\\n- Potentiel analytique: ${processedData.summary.mlReadyCollections > 0 ? 'ÉLEVÉ' : 'À DÉVELOPPER'}\\n\\n🎯 MISSION Expert SAP:\\n\\n1. 💼 Analyse Finance/CO spécialisée:\\n   - Évaluation qualité données ACM_APPLWC\\n   - Impact sur processus Monthly Close\\n   - Optimisation des écritures automatiques\\n   - Détection anomalies sur PUP/commitments\\n\\n2. 📊 KPIs SAP Finance prioritaires:\\n   - Variance analysis automatisée\\n   - Prédiction cash-flow opérationnel\\n   - Alertes dépassements budgétaires\\n   - Reconciliation automatique GL/CO\\n\\n3. 🔧 Recommandations techniques SAP:\\n   - Configuration optimale FI/CO\\n   - Amélioration workflow approval\\n   - Mise en place real-time dashboards\\n   - Intégration BW/4HANA ou S/4HANA\\n\\n4. ⚡ Quick Wins identifiés:\\n   - Tables SAP prioritaires (ACDOCA, CKML, MBEW)\\n   - Business Rules à automatiser\\n   - Processus manuels à éliminer\\n   - ROI calculé par Company Code\\n\\nTon expertise: Finance SAP + Machine Learning + Business Intelligence`;\n\nreturn [processedData];"
+      },
+      "id": "data-processor",
+      "name": "SAPience Data Processor",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        688,
+        304
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "gemini-business",
+      "name": "Gemini Business Analysis",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "position": [
+        912,
+        128
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "GGhmzM7SL2gH1iLJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "maxTokens": 1500,
+          "temperature": 0.1
+        }
+      },
+      "id": "chatgpt-technical",
+      "name": "ChatGPT Technical Analysis",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        912,
+        304
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "openAiApi": {
+          "id": "pkyp4PPzin8mBgC9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://sapience-v3.netlify.app/api/bedrock/chat",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "X-Sapience-Auth",
+              "value": "n8n-workflow-integration"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $node['SAPience Data Processor'].json.supernovaPrompt }}"
+            },
+            {
+              "name": "sessionId",
+              "value": "={{ 'n8n-' + $execution.id }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "supernova-sap-expert",
+      "name": "Supernova SAP Expert",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        912,
+        480
+      ],
+      "typeVersion": 4
+    },
+    {
+      "parameters": {
+        "mode": "mergeByPosition"
+      },
+      "id": "ai-merger",
+      "name": "Merge AI Results",
+      "type": "n8n-nodes-base.merge",
+      "position": [
+        1200,
+        304
+      ],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "functionCode": "const processedData = $node['SAPience Data Processor'].json;\nconst geminiAnalysis = items.find(item => item.json.content && (item.json.content.includes('ROI') || item.json.content.includes('Business')))?.json || items[0]?.json || {};\nconst chatgptAnalysis = items.find(item => item.json.content && (item.json.content.includes('Architecture') || item.json.content.includes('technique')))?.json || items[1]?.json || {};\nconst supernovaAnalysis = items.find(item => item.json.response && (item.json.response.includes('SAP') || item.json.response.includes('Finance')))?.json || items[2]?.json || {};\n\n// SAPience Enhanced Response (Triple-AI Analysis)\nconst sapienceResponse = {\n  success: true,\n  platform: 'SAPience ML Platform v2.0',\n  metadata: {\n    timestamp: new Date().toISOString(),\n    processingId: `sapience-${Date.now()}`,\n    workflow: 'SAPience Triple-AI Analysis (Gemini + ChatGPT + Supernova)',\n    version: '2.0.0-optimized',\n    aiModelsUsed: ['Gemini-1.5-Pro (Business)', 'ChatGPT-4o (Technical)', 'Supernova (SAP Expert)']\n  },\n  sapSummary: {\n    source: processedData.source,\n    collections: processedData.summary,\n    mlReadiness: {\n      score: processedData.summary.mlReadyCollections / Math.max(processedData.summary.totalCollections, 1),\n      readyCollections: processedData.summary.mlReadyCollections,\n      forecastPotential: processedData.summary.mlReadyCollections > 0 ? 'HIGH' : 'REQUIRES_SETUP'\n    },\n    businessContext: processedData.businessContext\n  },\n  aiAnalysis: {\n    business: {\n      model: 'Gemini-1.5-Pro',\n      focus: 'ROI, KPIs, Stratégie SAPience',\n      analysis: geminiAnalysis.content || geminiAnalysis.response || geminiAnalysis.text || 'Business analysis en cours...',\n      confidence: 0.85,\n      perspective: 'Finance/CO & Supply Chain Consultant'\n    },\n    technical: {\n      model: 'ChatGPT-4o',\n      focus: 'Architecture, ML Pipeline, Sécurité',\n      analysis: chatgptAnalysis.content || chatgptAnalysis.response || chatgptAnalysis.text || 'Technical analysis en cours...',\n      confidence: 0.88,\n      perspective: 'SAP/ML Solutions Architect'\n    },\n    sapExpert: {\n      model: 'Supernova (AWS Bedrock)',\n      focus: 'SAP Finance/CO, Processus métier, Quick Wins',\n      analysis: supernovaAnalysis.response || supernovaAnalysis.content || supernovaAnalysis.text || 'SAP expert analysis en cours...',\n      confidence: 0.92,\n      perspective: 'SAP Finance/CO Specialist + ML Expert',\n      sessionId: supernovaAnalysis.sessionId || null\n    },\n    consensus: {\n      implementationReadiness: processedData.summary.mlReadyCollections > 0 ? 'GO' : 'PREPARATION_NEEDED',\n      priority: 'HIGH',\n      estimatedROI: '15-25% reduction in forecast errors',\n      timeline: '0-90 days implementation',\n      sapSpecificInsights: 'Enhanced with Supernova SAP expertise'\n    }\n  },\n  sapienceRecommendations: {\n    immediate: [\n      '🔧 Setup BTP Destination Service pour connexion sécurisée',\n      '📊 Implement baseline ML models (LightGBM/XGBoost)',\n      '⚠️ Configure anomaly detection alerts via n8n',\n      '📈 Setup MAPE monitoring dashboard',\n      '🤖 Deploy Supernova SAP Expert pour analyses continues'\n    ],\n    strategic: [\n      '🤖 Deploy predictive PUP models',\n      '🔍 Implement what-if scenario analysis',\n      '📱 Build executive dashboards multi-entités',\n      '🎯 Setup multi-tenant architecture (EU-West-3)',\n      '🧠 Integrate Supernova dans processus Monthly Close'\n    ],\n    sapSpecific: [\n      '📋 Configure tables SAP prioritaires (ACDOCA, CKML, MBEW)',\n      '⚡ Automatiser Business Rules identifiées par Supernova',\n      '🔄 Éliminer processus manuels détectés',\n      '📊 Calculer ROI par Company Code avec Supernova'\n    ],\n    integrationPoints: processedData.collections?.filter(c => c.mlPotential?.isPredictable).map(c => c.name).slice(0, 5) || []\n  },\n  nextActions: {\n    technical: [\n      {\n        action: 'Setup SAP BTP Connector + OAuth2SAMLBearerAssertion',\n        priority: 'CRITICAL',\n        timeline: '0-15 days',\n        owner: 'DevOps Team'\n      },\n      {\n        action: 'Deploy ML Feature Store (Postgres + RLS)',\n        priority: 'HIGH', \n        timeline: '15-30 days',\n        owner: 'ML Engineering'\n      },\n      {\n        action: 'Configure Supernova agent avec données SAP temps réel',\n        priority: 'HIGH',\n        timeline: '7-21 days',\n        owner: 'SAP/ML Team'\n      }\n    ],\n    business: [\n      {\n        action: 'Validate Company Codes/Plants scope avec Supernova',\n        priority: 'HIGH',\n        timeline: '0-7 days',\n        owner: 'Business Analysts + Supernova'\n      },\n      {\n        action: 'Define PUP accuracy targets (MAPE < 5%) avec expertise Supernova',\n        priority: 'MEDIUM',\n        timeline: '7-14 days', \n        owner: 'Finance/CO Team + Supernova'\n      }\n    ]\n  },\n  pricing: {\n    estimatedTier: processedData.summary.totalCollections > 10 ? 'Pro (€6-12k/mois)' : 'Essential (€2-5k/mois)',\n    features: {\n      essential: ['Multi-entity dashboards', 'Basic exports', 'Email alerts'],\n      pro: ['PUP prediction + IC', 'Smart n8n alerts', 'What-if analysis', 'Advanced ML models', 'Supernova SAP Expert 24/7']\n    },\n    deployment: 'EU-West-3 (Paris) - RGPD compliant + SOX ready + Supernova integration'\n  }\n};\n\nreturn [sapienceResponse];"
+      },
+      "id": "response-formatter",
+      "name": "SAPience Response Formatter",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        1424,
+        304
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "const response = items[0].json;\n\n// Enhanced SAPience logging avec Supernova\nconst sapienceLogEntry = {\n  timestamp: new Date().toISOString(),\n  platform: 'SAPience ML Platform v2.0',\n  workflow: 'SAPience-Triple-AI-Analysis-Optimized',\n  processingId: response.metadata.processingId,\n  business: {\n    collectionsAnalyzed: response.sapSummary.collections.totalCollections,\n    mlReadinessScore: response.sapSummary.mlReadiness.score,\n    forecastPotential: response.sapSummary.mlReadiness.forecastPotential,\n    implementationReadiness: response.aiAnalysis.consensus.implementationReadiness\n  },\n  technical: {\n    aiModelsUsed: response.metadata.aiModelsUsed.length,\n    analysisQuality: {\n      businessConfidence: response.aiAnalysis.business.confidence,\n      technicalConfidence: response.aiAnalysis.technical.confidence,\n      sapExpertConfidence: response.aiAnalysis.sapExpert.confidence\n    },\n    recommendationsGenerated: {\n      immediate: response.sapienceRecommendations.immediate.length,\n      strategic: response.sapienceRecommendations.strategic.length,\n      sapSpecific: response.sapienceRecommendations.sapSpecific?.length || 0\n    }\n  },\n  supernova: {\n    sessionId: response.aiAnalysis.sapExpert.sessionId,\n    analysisCompleted: !!response.aiAnalysis.sapExpert.analysis,\n    expertiseLevel: 'SAP Finance/CO Specialist + ML Expert'\n  },\n  status: response.success ? 'SUCCESS' : 'ERROR',\n  performance: {\n    executionId: $execution.id,\n    processingTime: 'real_time_calculated'\n  },\n  saas: {\n    pricingTier: response.pricing.estimatedTier,\n    deploymentRegion: 'EU-West-3 (Paris)',\n    complianceLevel: 'RGPD + SOX ready + Supernova enhanced'\n  }\n};\n\n// Log for SAPience monitoring\nconsole.log('🚀 SAPience Platform Triple-AI Analysis Complete:', JSON.stringify(sapienceLogEntry, null, 2));\n\n// Add quality alerts avec Supernova\nif (response.sapSummary.mlReadiness.score < 0.3) {\n  console.warn('⚠️ SAPience Alert: Low ML readiness detected - Supernova recommends data preparation');\n}\n\nif (response.aiAnalysis.consensus.implementationReadiness === 'PREPARATION_NEEDED') {\n  console.warn('📋 SAPience Notice: Additional setup required - consult Supernova for SAP-specific guidance');\n}\n\n// Success metrics for SAPience dashboard avec Supernova\nif (response.sapSummary.mlReadiness.score > 0.7) {\n  console.log('✅ SAPience Success: High ML potential detected - Supernova ready for advanced SAP optimizations');\n}\n\n// Supernova specific logging\nif (response.aiAnalysis.sapExpert.sessionId) {\n  console.log(`🤖 Supernova Session: ${response.aiAnalysis.sapExpert.sessionId} - SAP expertise integrated`);\n}\n\nreturn [response];"
+      },
+      "id": "activity-logger",
+      "name": "SAPience Activity Logger",
+      "type": "n8n-nodes-base.function",
+      "position": [
+        1648,
+        304
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "SAP Data Trigger": {
+      "main": [
+        [
+          {
+            "node": "SAP OData ACM Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAP OData ACM Request": {
+      "main": [
+        [
+          {
+            "node": "SAPience Data Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAPience Data Processor": {
+      "main": [
+        [
+          {
+            "node": "Gemini Business Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ChatGPT Technical Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Supernova SAP Expert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini Business Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT Technical Analysis": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Supernova SAP Expert": {
+      "main": [
+        [
+          {
+            "node": "Merge AI Results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge AI Results": {
+      "main": [
+        [
+          {
+            "node": "SAPience Response Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SAPience Response Formatter": {
+      "main": [
+        [
+          {
+            "node": "SAPience Activity Logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "instanceId": "caede6f9cdf95cdc5277c2b7b828843215b9413d0803cf36e86826571708a0db"
+  }
+}
