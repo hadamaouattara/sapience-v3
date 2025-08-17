@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Brain, Database, Bot, TrendingUp, Shield, Zap, ArrowRight, CheckCircle, Play, ExternalLink, Activity, AlertCircle } from 'lucide-react';
+import SupernovaChat from '../components/SupernovaChat';
 
 export default function SAPienceHomePage() {
   const [platformStatus, setPlatformStatus] = useState({
@@ -460,6 +461,9 @@ export default function SAPienceHomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Supernova Chat Component */}
+      <SupernovaChat />
     </div>
   );
 }
