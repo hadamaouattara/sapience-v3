@@ -21,9 +21,24 @@
   function = "quantum-monitor"
   path = "/api/quantum/monitor"
 
+[[edge_functions]]
+  function = "n8n-workflow-trigger"
+  path = "/api/n8n/trigger"
+
+# Variables d'environnement pour n8n
+[context.production.environment]
+  N8N_WEBHOOK_URL = "https://n8n.sapience.app/webhook/8a17313f-61f4-4845-847a-9ab3a1f8d5b8"
+  SAP_ODATA_ENDPOINT = "http://202.153.35.211:50000/sap/opu/odata/sap/ACM_APPLWC/PUPOptimizationSet"
+  LANGSMITH_API_URL = "https://sapience-v3.netlify.app/api/quantum/monitor"
+
 [[redirects]]
   from = "/quantum/*"
   to = "/api/quantum/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/n8n/*"
+  to = "/api/n8n/:splat"
   status = 200
 
 [[redirects]]
