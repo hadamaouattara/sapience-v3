@@ -8,7 +8,7 @@ export default function SAPienceHomePage() {
   const [platformStatus, setPlatformStatus] = useState({
     platform: "SAPience ML Platform v2.0",
     status: "READY", 
-    version: "2.0.0",
+    version: "2.0.0-optimized",
     workflows: 3,
     region: "EU-West-3"
   });
@@ -16,10 +16,10 @@ export default function SAPienceHomePage() {
   const workflowStatus = [
     { 
       name: "Dual-AI Analysis", 
-      id: "GvCsRtTZPdSj3FqX", 
-      status: "CONFIGURED", 
+      id: "6WZDB2IFrABHmjQG", 
+      status: "OPTIMIZED", 
       lastRun: "Ready to activate",
-      description: "Claude 3.5 Sonnet + Gemini 1.5 Pro"
+      description: "Gemini 1.5 Pro + ChatGPT-4o (Optimized)"
     },
     { 
       name: "Monthly Close", 
@@ -41,10 +41,10 @@ export default function SAPienceHomePage() {
     {
       icon: Brain,
       title: "Dual AI Analysis",
-      description: "Claude 3.5 Sonnet + Gemini 1.5 Pro for comprehensive SAP insights with 90%+ confidence",
+      description: "Gemini 1.5 Pro + ChatGPT-4o for comprehensive SAP insights with 90%+ confidence (Optimized workflow)",
       color: "blue",
       metrics: "~4.5s processing time",
-      status: "READY"
+      status: "OPTIMIZED"
     },
     {
       icon: Database,
@@ -114,7 +114,7 @@ export default function SAPienceHomePage() {
         "PUP prediction + Confidence Intervals",
         "Smart n8n alerts & automation",
         "What-if scenario analysis",
-        "Claude AI Copilot", 
+        "Dual-AI Analysis (Gemini + ChatGPT)", 
         "Advanced ML models",
         "Unlimited Company Codes",
         "API access"
@@ -195,7 +195,7 @@ export default function SAPienceHomePage() {
             <Activity className="w-4 h-4" />
             <span>Platform Status: {platformStatus.status}</span>
             <span>•</span>
-            <span>{platformStatus.workflows} Workflows Configured</span>
+            <span>{platformStatus.workflows} Workflows Optimized</span>
             <span>•</span>
             <span>Hosted in {platformStatus.region}</span>
             <span>•</span>
@@ -241,6 +241,7 @@ export default function SAPienceHomePage() {
                     <h3 className="font-semibold text-gray-900">{workflow.name}</h3>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                       workflow.status === 'ACTIVE' ? 'bg-green-100 text-green-800' :
+                      workflow.status === 'OPTIMIZED' ? 'bg-purple-100 text-purple-800' :
                       workflow.status === 'CONFIGURED' ? 'bg-blue-100 text-blue-800' :
                       'bg-yellow-100 text-yellow-800'
                     }`}>
@@ -300,6 +301,7 @@ export default function SAPienceHomePage() {
                       <Icon className="w-6 h-6" />
                     </div>
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      feature.status === 'OPTIMIZED' ? 'bg-purple-100 text-purple-800' :
                       feature.status === 'READY' ? 'bg-green-100 text-green-800' :
                       feature.status === 'ACTIVE' ? 'bg-blue-100 text-blue-800' :
                       feature.status === 'CONFIGURED' ? 'bg-yellow-100 text-yellow-800' :
