@@ -30,6 +30,12 @@
   N8N_WEBHOOK_URL = "https://n8n.sapience.app/webhook/8a17313f-61f4-4845-847a-9ab3a1f8d5b8"
   SAP_ODATA_ENDPOINT = "http://202.153.35.211:50000/sap/opu/odata/sap/ACM_APPLWC/PUPOptimizationSet"
   LANGSMITH_API_URL = "https://sapience-v3.netlify.app/api/quantum/monitor"
+  
+  # Variables AWS Bedrock pour Supernova
+  AWS_REGION = "us-east-1"
+  BEDROCK_AGENT_ID = "TIK6SVDXRD"
+  BEDROCK_AGENT_ALIAS_ID = "AOGPQ7APV8"
+  # AWS_ACCESS_KEY_ID et AWS_SECRET_ACCESS_KEY doivent être configurés dans Netlify UI
 
 [[redirects]]
   from = "/quantum/*"
